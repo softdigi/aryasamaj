@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Donation;
+use App\Models\Feature;
+
+class HomeController extends Controller
+{
+    public function index()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'features_sangathan' => Feature::active()->where('section', 'sangathan')->orderBy('sort_order')->get(),
+                'features_suvidha'   => Feature::active()->where('section', 'suvidha')->orderBy('sort_order')->get(),
+                'top_categories'     => Category::whereNull('parent_id')->active()->orderBy('sort_order')->take(8)->get(),
+                'donation'           => Donation::where('status', 'active')->first(),
+            ]
+        ]);
+    }
+}
