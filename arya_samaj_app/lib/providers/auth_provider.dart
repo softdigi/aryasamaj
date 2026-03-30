@@ -1,0 +1,60 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../core/api/api_client.dart';
+import '../core/api/api_endpoints.dart';
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  return AuthNotifier(ref.read(apiClientProvider));
+});
+
+class AuthState {
+  final bool isLoading;
+  final String? error;
+  final String? token;
+  AuthState({this.isLoading = false, this.error, this.token});
+  AuthState copyWith({bool? isLoading, String? error, String? token}) =>
+      AuthState(isLoading: isLoading ?? this.isLoading, error: error, token: token ?? this.token);
+}
+
+class AuthNotifier extends StateNotifier<AuthState> {
+  final ApiClient _api;
+  AuthNotifier(this._api) : super(AuthState());
+
+  Future<bool> sendOtp(String mobile) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _api.post(ApiEndpoints.sendOtp, data: {'mobile': mobile});
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'OTP भेजने में समस्या');
+      return false;
+    }
+  }
+
+  Future<bool> verifyOtp(String mobile, String otp) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final res = await _api.post(ApiEndpoints.verifyOtp, data: {'mobile': mobile, 'otp': otp});
+      final token = res.data['data']['token'] as String;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+      await prefs.setString('user_mobile', mobile);
+      state = state.copyWith(isLoading: false, token: token);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'OTP गलत है या समय सीमा समाप्त');
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await _api.post(ApiEndpoints.logout);
+    } catch (_) {}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    await prefs.remove('user_mobile');
+    state = AuthState();
+  }
+}
