@@ -31,6 +31,9 @@ class AppColors {
   static const textSecondary = Color(0xFF666666);
   static const textMuted     = Color(0xFF999999);
 
+  // Border
+  static const border  = Color(0xFFE0E0E0);
+
   // Status
   static const success = Color(0xFF2E7D32);
   static const error   = Color(0xFFC62828);
