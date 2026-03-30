@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Debug variant: allow cleartext traffic to local dev server -->
+    <application android:usesCleartextTraffic="true"/>
+</manifest>
