@@ -65,6 +65,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'mobile' => $user->mobile,
+                'profile_complete' => (bool) $user->profile_complete,
                 'profile_image' => $user->profile_image ? asset('uploads/profiles/' . $user->profile_image) : null,
             ]
         ], 'Login successful');

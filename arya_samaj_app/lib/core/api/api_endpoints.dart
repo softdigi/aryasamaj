@@ -9,7 +9,19 @@ class ApiEndpoints {
   static const String donation   = '/donation';
   static const String feedback   = '/feedback';
   static const String profile    = '/profile';
+  static const String myProfile  = '/my-profile';
   static const String logout     = '/logout';
   static const String events     = '/events';
   static const String search     = '/search';
+
+  // Profile setup
+  static const String saveProfile    = '/save-profile';
+  static const String saveCategories = '/save-categories';
+  static const String saveAbout      = '/save-about';
+  static const String uploadImages   = '/upload-images';
+
+  // Members social
+  static const String members           = '/members';
+  static const String memberCategories  = '/member-categories';
 }
+

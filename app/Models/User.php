@@ -27,6 +27,22 @@ class User extends Authenticatable
         'is_admin',
         'status',
         'profile_image',
+        'username',
+        'gender',
+        'dob',
+        'country',
+        'state',
+        'district',
+        'tehsil',
+        'village',
+        'post_office',
+        'pincode',
+        'about',
+        'org_type',
+        'org_name',
+        'profile_complete',
+        'is_verified',
+        'profile_views',
     ];
 
     /**
@@ -49,12 +65,25 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'profile_complete' => 'boolean',
+            'is_verified' => 'boolean',
+            'dob' => 'date',
         ];
     }
 
     public function feedback()
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    public function memberCategories()
+    {
+        return $this->belongsToMany(MemberCategory::class, 'user_member_categories');
+    }
+
+    public function images()
+    {
+        return $this->hasMany(UserImage::class)->orderBy('sort_order');
     }
 }
 

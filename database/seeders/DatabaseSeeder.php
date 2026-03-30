@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             FeatureSeeder::class,
             DonationSeeder::class,
+            MemberCategorySeeder::class,
         ]);
     }
 }
