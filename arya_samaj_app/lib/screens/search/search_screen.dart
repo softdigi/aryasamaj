@@ -11,7 +11,7 @@ final _searchQueryProvider = StateProvider<String>((ref) => '');
 final searchResultsProvider = FutureProvider.family<List<ContentModel>, String>((ref, query) async {
   if (query.trim().length < 2) return [];
   final api = ref.read(apiClientProvider);
-  final res = await api.get(ApiEndpoints.contents, queryParameters: {'search': query.trim()});
+  final res = await api.get(ApiEndpoints.contents, params: {'search': query.trim()});
   return (res.data['data'] as List).map((e) => ContentModel.fromJson(e)).toList();
 });
 

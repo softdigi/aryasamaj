@@ -10,4 +10,6 @@ class ApiEndpoints {
   static const String feedback   = '/feedback';
   static const String profile    = '/profile';
   static const String logout     = '/logout';
+  static const String events     = '/events';
+  static const String search     = '/search';
 }
