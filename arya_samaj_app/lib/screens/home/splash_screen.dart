@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -12,6 +12,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late final AnimationController _ac;
   late final Animation<double> _scale;
+  static const _storage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -25,10 +26,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _navigate() async {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = await _storage.read(key: 'auth_token');
     if (token != null && token.isNotEmpty) {
-      final profileComplete = prefs.getBool('profile_complete') ?? false;
+      final profileComplete = (await _storage.read(key: 'profile_complete')) == 'true';
       if (context.mounted) context.go(profileComplete ? '/home' : '/profile-setup');
     } else {
       if (context.mounted) context.go('/login');

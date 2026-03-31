@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/otp_screen.dart';
 import '../../screens/home/splash_screen.dart';
@@ -21,11 +21,11 @@ import '../../screens/members/members_screen.dart';
 import '../../screens/members/member_detail_screen.dart';
 
 final routerProvider = Provider((ref) {
+  const storage = FlutterSecureStorage();
   return GoRouter(
     initialLocation: '/splash',
     redirect: (context, state) async {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
+      final token = await storage.read(key: 'auth_token');
       final isAuth = token != null && token.isNotEmpty;
       final loc = state.matchedLocation;
       final isOnAuth = loc == '/login' || loc.startsWith('/otp');
@@ -34,7 +34,7 @@ final routerProvider = Provider((ref) {
       if (!isAuth && !isOnAuth && loc != '/splash') return '/login';
 
       if (isAuth && !isOnAuth && loc != '/splash' && !isSetup) {
-        final profileComplete = prefs.getBool('profile_complete') ?? false;
+        final profileComplete = (await storage.read(key: 'profile_complete')) == 'true';
         if (!profileComplete) return '/profile-setup';
       }
       return null;

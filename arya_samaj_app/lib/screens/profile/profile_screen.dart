@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  static const _storage = FlutterSecureStorage();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('प्रोफाइल')),
-      body: FutureBuilder<SharedPreferences>(
-        future: SharedPreferences.getInstance(),
+      body: FutureBuilder<Map<String, String?>>(
+        future: Future.wait([
+          _storage.read(key: 'user_mobile'),
+          _storage.read(key: 'profile_complete'),
+        ]).then((vals) => {'user_mobile': vals[0], 'profile_complete': vals[1]}),
         builder: (ctx, snap) {
-          final mobile = snap.data?.getString('user_mobile') ?? '';
-          final profileComplete = snap.data?.getBool('profile_complete') ?? false;
+          final mobile = snap.data?['user_mobile'] ?? '';
+          final profileComplete = snap.data?['profile_complete'] == 'true';
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(children: [

@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
+import '../core/services/notification_service.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(ref.read(apiClientProvider));
@@ -24,14 +25,15 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final ApiClient _api;
+  static const _storage = FlutterSecureStorage();
+
   AuthNotifier(this._api) : super(AuthState()) {
     _loadToken();
   }
 
   Future<void> _loadToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final profileComplete = prefs.getBool('profile_complete') ?? false;
+    final token = await _storage.read(key: 'auth_token');
+    final profileComplete = (await _storage.read(key: 'profile_complete')) == 'true';
     if (token != null && token.isNotEmpty) {
       state = state.copyWith(token: token, profileComplete: profileComplete);
     }
@@ -55,11 +57,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final res = await _api.post(ApiEndpoints.verifyOtp, data: {'mobile': mobile, 'otp': otp});
       final token = res.data['data']['token'] as String;
       final profileComplete = res.data['data']['user']['profile_complete'] == true;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-      await prefs.setString('user_mobile', mobile);
-      await prefs.setBool('profile_complete', profileComplete);
+      await _storage.write(key: 'auth_token', value: token);
+      await _storage.write(key: 'user_mobile', value: mobile);
+      await _storage.write(key: 'profile_complete', value: profileComplete.toString());
       state = state.copyWith(isLoading: false, token: token, profileComplete: profileComplete);
+
+      // Register FCM token with the backend
+      _registerFcmToken();
+
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'OTP गलत है या समय सीमा समाप्त');
@@ -67,20 +72,33 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> _registerFcmToken() async {
+    try {
+      final fcmToken = await NotificationService.getToken();
+      if (fcmToken != null) {
+        await _api.post(ApiEndpoints.fcmToken, data: {'fcm_token': fcmToken});
+      }
+    } catch (_) {
+      // Non-critical — silently ignore FCM registration failures
+    }
+  }
+
   Future<void> markProfileComplete() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('profile_complete', true);
+    await _storage.write(key: 'profile_complete', value: 'true');
     state = state.copyWith(profileComplete: true);
   }
 
   Future<void> logout() async {
+    // Clear FCM token on the server before logging out
+    try {
+      await _api.post(ApiEndpoints.fcmToken, data: {'fcm_token': null});
+    } catch (_) {}
     try {
       await _api.post(ApiEndpoints.logout);
     } catch (_) {}
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.remove('user_mobile');
-    await prefs.remove('profile_complete');
+    await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: 'user_mobile');
+    await _storage.delete(key: 'profile_complete');
     state = AuthState();
   }
 }

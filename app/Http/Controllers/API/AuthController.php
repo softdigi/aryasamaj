@@ -79,13 +79,14 @@ class AuthController extends Controller
             'name' => $user->name,
             'mobile' => $user->mobile,
             'email' => $user->email,
-            'profile_image' => $user->profile_image ? asset('uploads/profiles/' . $user->profile_image) : null,
+            'profile_image' => $user->profile_image ? url('/api/files/profile/' . $user->id) : null,
         ]);
     }
 
     // POST /api/logout
     public function logout(Request $request)
     {
+        $request->user()->update(['fcm_token' => null]);
         $request->user()->currentAccessToken()->delete();
         return $this->success([], 'Logged out successfully');
     }

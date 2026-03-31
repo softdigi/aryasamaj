@@ -94,6 +94,12 @@
                             <p>Feedback</p>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.change-password') }}" class="nav-link {{ request()->routeIs('admin.change-password*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-key"></i>
+                            <p>Change Password</p>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>

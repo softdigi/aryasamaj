@@ -23,5 +23,8 @@ class ApiEndpoints {
   // Members social
   static const String members           = '/members';
   static const String memberCategories  = '/member-categories';
+
+  // FCM
+  static const String fcmToken = '/user/fcm-token';
 }
 
