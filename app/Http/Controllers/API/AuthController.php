@@ -20,14 +20,13 @@ class AuthController extends Controller
 
         OtpLog::updateOrCreate(
             ['mobile' => $request->mobile],
-            ['otp' => $otp, 'expires_at' => now()->addMinutes(5), 'is_used' => 0, 'created_at' => now()]
+            ['otp' => hash('sha256', $otp), 'expires_at' => now()->addMinutes(5), 'is_used' => 0, 'created_at' => now()]
         );
 
         // TODO: Integrate SMS gateway (Fast2SMS / MSG91)
         // Send $otp to $request->mobile via SMS API
 
-        // For development, return OTP directly (remove in production)
-        return $this->success(['otp_debug' => $otp], 'OTP sent successfully');
+        return $this->success([], 'OTP sent successfully');
     }
 
     // POST /api/verify-otp
@@ -40,7 +39,7 @@ class AuthController extends Controller
         if ($v->fails()) return $this->error($v->errors()->first());
 
         $log = OtpLog::where('mobile', $request->mobile)
-            ->where('otp', $request->otp)
+            ->where('otp', hash('sha256', $request->otp))
             ->where('is_used', 0)
             ->where('expires_at', '>=', now())
             ->first();

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::post('/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:5,1');
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,10');
 Route::get('/home', [HomeController::class, 'index']);
 Route::get('/features', [FeatureController::class, 'index']);
 Route::get('/donation', [DonationController::class, 'index']);
