@@ -54,6 +54,14 @@ return [
             'visibility' => 'public',
         ],
 
+        // Private user uploads — not web-accessible directly.
+        // Served through the authenticated FileController.
+        'private_uploads' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/uploads'),
+            'visibility' => 'private',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
