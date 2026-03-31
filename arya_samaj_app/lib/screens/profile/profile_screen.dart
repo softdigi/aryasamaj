@@ -10,12 +10,14 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('प्रोफाइल')),
       body: FutureBuilder<SharedPreferences>(
         future: SharedPreferences.getInstance(),
         builder: (ctx, snap) {
           final mobile = snap.data?.getString('user_mobile') ?? '';
+          final profileComplete = snap.data?.getBool('profile_complete') ?? false;
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(children: [
@@ -31,8 +33,22 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(mobile.isNotEmpty ? '+91 $mobile' : 'उपयोगकर्ता',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 32),
-              _tile(Icons.edit, 'नाम बदलें', () {}),
+              if (!profileComplete) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.saffronLight,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.saffron),
+                  ),
+                  child: const Text('प्रोफाइल अधूरी है', style: TextStyle(color: AppColors.saffron, fontSize: 12)),
+                ),
+              ],
+              const SizedBox(height: 24),
+              _tile(Icons.edit, profileComplete ? 'प्रोफाइल संपादित करें' : 'प्रोफाइल सेटअप करें',
+                  () => context.go('/profile-setup')),
+              _tile(Icons.people_outline, 'सदस्य निर्देशिका', () => context.go('/members')),
               _tile(Icons.notifications_outlined, 'अधिसूचनाएं', () {}),
               _tile(Icons.share, 'ऐप शेयर करें', () {}),
               _tile(Icons.star_outline, 'ऐप रेट करें', () {}),

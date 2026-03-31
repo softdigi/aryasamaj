@@ -37,4 +37,6 @@ class ApiClient {
 
   Future postForm(String path, {required FormData formData}) =>
       _dio.post(path, data: formData);
+
+  Future delete(String path) => _dio.delete(path);
 }

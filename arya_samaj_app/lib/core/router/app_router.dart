@@ -16,6 +16,9 @@ import '../../screens/donation/donation_screen.dart';
 import '../../screens/feedback/feedback_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../../screens/search/search_screen.dart';
+import '../../screens/profile_setup/profile_setup_screen.dart';
+import '../../screens/members/members_screen.dart';
+import '../../screens/members/member_detail_screen.dart';
 
 final routerProvider = Provider((ref) {
   return GoRouter(
@@ -24,8 +27,16 @@ final routerProvider = Provider((ref) {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
       final isAuth = token != null && token.isNotEmpty;
-      final isOnAuth = state.matchedLocation == '/login' || state.matchedLocation.startsWith('/otp');
-      if (!isAuth && !isOnAuth && state.matchedLocation != '/splash') return '/login';
+      final loc = state.matchedLocation;
+      final isOnAuth = loc == '/login' || loc.startsWith('/otp');
+      final isSetup  = loc == '/profile-setup';
+
+      if (!isAuth && !isOnAuth && loc != '/splash') return '/login';
+
+      if (isAuth && !isOnAuth && loc != '/splash' && !isSetup) {
+        final profileComplete = prefs.getBool('profile_complete') ?? false;
+        if (!profileComplete) return '/profile-setup';
+      }
       return null;
     },
     routes: [
@@ -33,6 +44,7 @@ final routerProvider = Provider((ref) {
       GoRoute(path: '/login',   builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/otp',     builder: (c, s) => OtpScreen(mobile: s.extra as String)),
       GoRoute(path: '/home',    builder: (c, s) => const HomeScreen()),
+      GoRoute(path: '/profile-setup', builder: (c, s) => const ProfileSetupScreen()),
       GoRoute(path: '/categories', builder: (c, s) {
         final extra = s.extra as Map?;
         return CategoryScreen(parentId: extra?['parent_id'], title: extra?['title'] ?? 'श्रेणियां');
@@ -50,6 +62,8 @@ final routerProvider = Provider((ref) {
       GoRoute(path: '/feedback', builder: (c, s) => const FeedbackScreen()),
       GoRoute(path: '/profile',  builder: (c, s) => const ProfileScreen()),
       GoRoute(path: '/search',   builder: (c, s) => const SearchScreen()),
+      GoRoute(path: '/members',  builder: (c, s) => const MembersScreen()),
+      GoRoute(path: '/members/:id', builder: (c, s) => MemberDetailScreen(memberId: int.parse(s.pathParameters['id']!))),
     ],
   );
 });

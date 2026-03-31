@@ -27,7 +27,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    if (context.mounted) context.go(token != null && token.isNotEmpty ? '/home' : '/login');
+    if (token != null && token.isNotEmpty) {
+      final profileComplete = prefs.getBool('profile_complete') ?? false;
+      if (context.mounted) context.go(profileComplete ? '/home' : '/profile-setup');
+    } else {
+      if (context.mounted) context.go('/login');
+    }
   }
 
   @override
