@@ -41,10 +41,10 @@ class ProfileController extends Controller
         if ($request->hasFile('profile_image')) {
             $file = $request->file('profile_image');
             $filename = 'profile_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/profiles'), $filename);
-            if ($user->profile_image && file_exists(public_path('uploads/profiles/' . $user->profile_image))) {
-                @unlink(public_path('uploads/profiles/' . $user->profile_image));
+            if ($user->profile_image) {
+                Storage::disk('private_uploads')->delete('profiles/' . $user->profile_image);
             }
+            Storage::disk('private_uploads')->putFileAs('profiles', $file, $filename);
             $data['profile_image'] = $filename;
         }
 
@@ -101,13 +101,13 @@ class ProfileController extends Controller
 
         foreach ($request->file('images') as $idx => $file) {
             $filename = 'user_' . $user->id . '_' . time() . '_' . $idx . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/user-images'), $filename);
+            Storage::disk('private_uploads')->putFileAs('user-images', $file, $filename);
             $img = UserImage::create([
                 'user_id'    => $user->id,
                 'image_path' => $filename,
                 'sort_order' => $user->images()->count() + $idx,
             ]);
-            $saved[] = ['id' => $img->id, 'url' => $img->image_url];
+            $saved[] = ['id' => $img->id, 'url' => url('/api/files/user-image/' . $img->id)];
         }
 
         // Mark profile complete after images step
@@ -120,7 +120,7 @@ class ProfileController extends Controller
     public function deleteImage(Request $request, int $id)
     {
         $image = UserImage::where('id', $id)->where('user_id', $request->user()->id)->firstOrFail();
-        @unlink(public_path('uploads/user-images/' . $image->image_path));
+        Storage::disk('private_uploads')->delete('user-images/' . $image->image_path);
         $image->delete();
         return $this->success([], 'Image deleted');
     }
@@ -150,7 +150,7 @@ class ProfileController extends Controller
             'pincode'          => $user->pincode,
             'org_type'         => $user->org_type,
             'org_name'         => $user->org_name,
-            'profile_image'    => $user->profile_image ? asset('uploads/profiles/' . $user->profile_image) : null,
+            'profile_image'    => $user->profile_image ? url('/api/files/profile/' . $user->id) : null,
             'is_verified'      => $user->is_verified,
             'profile_complete' => $user->profile_complete,
         ];
@@ -158,7 +158,7 @@ class ProfileController extends Controller
         if ($full) {
             $data['about']      = $user->about;
             $data['categories'] = $user->memberCategories->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'group' => $c->group]);
-            $data['images']     = $user->images->map(fn($i) => ['id' => $i->id, 'url' => $i->image_url]);
+            $data['images']     = $user->images->map(fn($i) => ['id' => $i->id, 'url' => url('/api/files/user-image/' . $i->id)]);
         }
 
         return $data;

@@ -15,6 +15,6 @@ class UserImage extends Model
 
     public function getImageUrlAttribute(): string
     {
-        return asset('uploads/user-images/' . $this->image_path);
+        return url('/api/files/user-image/' . $this->id);
     }
 }
