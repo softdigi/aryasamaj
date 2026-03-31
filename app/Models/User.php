@@ -43,6 +43,7 @@ class User extends Authenticatable
         'profile_complete',
         'is_verified',
         'profile_views',
+        'fcm_token',
     ];
 
     /**

@@ -27,7 +27,7 @@ class ProfileController extends Controller
             'village'      => 'nullable|string|max:150',
             'post_office'  => 'nullable|string|max:100',
             'pincode'      => 'nullable|string|max:10',
-            'profile_image' => 'nullable|image|max:2048',
+            'profile_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
         if ($v->fails()) return $this->error($v->errors()->first());
 
@@ -92,7 +92,7 @@ class ProfileController extends Controller
     {
         $v = Validator::make($request->all(), [
             'images'   => 'required|array|min:1|max:10',
-            'images.*' => 'image|max:3072',
+            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:3072',
         ]);
         if ($v->fails()) return $this->error($v->errors()->first());
 
@@ -130,6 +130,19 @@ class ProfileController extends Controller
     {
         $user = $request->user()->load(['memberCategories', 'images']);
         return $this->success($this->formatUser($user, true));
+    }
+
+    // POST /api/user/fcm-token
+    public function updateFcmToken(Request $request)
+    {
+        $v = Validator::make($request->all(), [
+            'fcm_token' => 'nullable|string|max:255',
+        ]);
+        if ($v->fails()) return $this->error($v->errors()->first());
+
+        $request->user()->update(['fcm_token' => $request->fcm_token]);
+
+        return $this->success([], 'FCM token updated');
     }
 
     private function formatUser(User $user, bool $full = false): array

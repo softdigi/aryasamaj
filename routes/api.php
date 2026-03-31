@@ -6,6 +6,7 @@ use App\Http\Controllers\API\ContentController;
 use App\Http\Controllers\API\DonationController;
 use App\Http\Controllers\API\FeedbackController;
 use App\Http\Controllers\API\FeatureController;
+use App\Http\Controllers\API\FileController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\MembersController;
 use App\Http\Controllers\API\ProfileController;
@@ -39,4 +40,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/save-about', [ProfileController::class, 'saveAbout']);
     Route::post('/upload-images', [ProfileController::class, 'uploadImages']);
     Route::delete('/images/{id}', [ProfileController::class, 'deleteImage']);
+
+    // Private file serving (auth required)
+    Route::get('/files/profile/{userId}', [FileController::class, 'profileImage']);
+    Route::get('/files/user-image/{id}', [FileController::class, 'userImage']);
+
+    // FCM token
+    Route::post('/user/fcm-token', [ProfileController::class, 'updateFcmToken']);
 });
