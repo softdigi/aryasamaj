@@ -32,4 +32,20 @@ class DonationController extends Controller
         Donation::create($data);
         return redirect()->route('admin.donations.index')->with('success', 'Donation info saved!');
     }
+
+    public function edit(Donation $donation)
+    {
+        return view('admin.donations.edit', compact('donation'));
+    }
+
+    public function update(Request $request, Donation $donation)
+    {
+        $data = $request->only(['type', 'account_name', 'account_number', 'ifsc_code', 'upi_id', 'description', 'status']);
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->getClientOriginalName();
+            $request->file('image')->move(public_path('uploads/donations'), $data['image']);
+        }
+        $donation->update($data);
+        return redirect()->route('admin.donations.index')->with('success', 'Donation info updated!');
+    }
 }

@@ -6,13 +6,26 @@ import 'package:shimmer/shimmer.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
+import '../../core/services/cache_service.dart';
 import '../../models/content_model.dart';
 
 final contentListProvider =
     FutureProvider.family<List<ContentModel>, int>((ref, categoryId) async {
+  final cacheKey = 'contents_$categoryId';
   final api = ref.read(apiClientProvider);
-  final res = await api.get(ApiEndpoints.contents, params: {'category_id': categoryId});
-  return (res.data['data'] as List).map((e) => ContentModel.fromJson(e)).toList();
+
+  try {
+    final res = await api.get(ApiEndpoints.contents, params: {'category_id': categoryId});
+    final list = res.data['data'] as List;
+    await CacheService.set(cacheKey, list);
+    return list.map((e) => ContentModel.fromJson(e)).toList();
+  } catch (_) {
+    final cached = CacheService.get(cacheKey) as List?;
+    if (cached != null) {
+      return cached.map((e) => ContentModel.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    rethrow;
+  }
 });
 
 class ContentListScreen extends ConsumerWidget {

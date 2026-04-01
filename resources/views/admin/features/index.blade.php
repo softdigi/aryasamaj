@@ -42,6 +42,9 @@
                     </td>
                     <td>{{ $feature->sort_order }}</td>
                     <td>
+                        <a href="{{ route('admin.features.edit', $feature) }}" class="btn btn-xs btn-info mr-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
                         <form method="POST" action="{{ route('admin.features.toggle', $feature) }}" class="d-inline">
                             @csrf
                             <button class="btn btn-xs {{ $feature->status === 'active' ? 'btn-warning' : 'btn-success' }}">

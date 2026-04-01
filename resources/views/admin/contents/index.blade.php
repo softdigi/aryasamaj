@@ -46,6 +46,9 @@
                         @endif
                     </td>
                     <td>
+                        <a href="{{ route('admin.contents.edit', $content) }}" class="btn btn-xs btn-info mr-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
                         <form method="POST" action="{{ route('admin.contents.destroy', $content) }}" class="d-inline"
                               onsubmit="return confirm('Delete this content?')">
                             @csrf @method('DELETE')
