@@ -4,12 +4,15 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\ContentController;
 use App\Http\Controllers\API\DonationController;
+use App\Http\Controllers\API\DonationPaymentController;
+use App\Http\Controllers\API\EventController;
 use App\Http\Controllers\API\FeedbackController;
 use App\Http\Controllers\API\FeatureController;
 use App\Http\Controllers\API\FileController;
 use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\MembersController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\SearchController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -21,6 +24,9 @@ Route::get('/donation', [DonationController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/contents', [ContentController::class, 'index']);
 Route::get('/contents/{id}', [ContentController::class, 'show']);
+Route::get('/search', [SearchController::class, 'search']);
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/events/{id}', [EventController::class, 'show']);
 
 // Members (public listing)
 Route::get('/members', [MembersController::class, 'index']);
@@ -47,4 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // FCM token
     Route::post('/user/fcm-token', [ProfileController::class, 'updateFcmToken']);
+
+    // Razorpay donation payment
+    Route::post('/donation/pay', [DonationPaymentController::class, 'store']);
 });

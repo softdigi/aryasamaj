@@ -13,6 +13,10 @@ class ContentController extends Controller
         $q = Content::with('category')->active();
         if ($request->category_id) $q->where('category_id', $request->category_id);
         if ($request->type) $q->where('type', $request->type);
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $q->where(fn($q) => $q->where('title', 'like', "%$s%")->orWhere('description', 'like', "%$s%"));
+        }
 
         $contents = $q->orderByDesc('created_at')->paginate(20);
 

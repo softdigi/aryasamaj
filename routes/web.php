@@ -24,6 +24,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
         Route::post('users/{user}/toggle', [Admin\UserController::class, 'toggle'])->name('users.toggle');
         Route::get('feedback', [Admin\FeedbackController::class, 'index'])->name('feedback.index');
+        Route::resource('events', Admin\EventController::class);
         Route::get('change-password', [Admin\AuthController::class, 'showChangePassword'])->name('change-password');
         Route::post('change-password', [Admin\AuthController::class, 'changePassword'])->name('change-password.post');
     });

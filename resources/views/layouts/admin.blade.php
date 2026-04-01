@@ -95,6 +95,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('admin.events.index') }}" class="nav-link {{ request()->routeIs('admin.events.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                            <p>Events</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('admin.change-password') }}" class="nav-link {{ request()->routeIs('admin.change-password*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-key"></i>
                             <p>Change Password</p>
