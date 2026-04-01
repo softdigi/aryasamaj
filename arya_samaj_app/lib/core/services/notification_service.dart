@@ -116,7 +116,7 @@ class NotificationService {
     if (route != null) {
       final context = navigatorKey.currentContext;
       if (context != null) {
-        GoRouter.of(context).go(route);
+        GoRouter.of(context).push(route);
       }
     }
   }

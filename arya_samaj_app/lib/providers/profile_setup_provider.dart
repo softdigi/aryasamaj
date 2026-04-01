@@ -156,8 +156,8 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
         about: d['about'] as String? ?? '',
         uploadedImages: imgs,
       );
-    } catch (_) {
-      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'प्रोफाइल लोड नहीं हो सकी');
     }
   }
 

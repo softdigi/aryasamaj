@@ -57,7 +57,9 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($event->image) @unlink(public_path('uploads/events/' . $event->image));
+            if ($event->image && file_exists(public_path('uploads/events/' . $event->image))) {
+                unlink(public_path('uploads/events/' . $event->image));
+            }
             $file = $request->file('image');
             $name = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('uploads/events'), $name);
@@ -70,7 +72,9 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
-        if ($event->image) @unlink(public_path('uploads/events/' . $event->image));
+        if ($event->image && file_exists(public_path('uploads/events/' . $event->image))) {
+            unlink(public_path('uploads/events/' . $event->image));
+        }
         $event->delete();
         return redirect()->route('admin.events.index')->with('success', 'Event deleted!');
     }

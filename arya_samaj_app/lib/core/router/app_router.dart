@@ -104,18 +104,15 @@ class _ContentDeepLinkScreen extends ConsumerWidget {
           switch (content.type) {
             case 'pdf':
               if (content.fileUrl != null) {
-                Navigator.of(ctx).pushReplacement(MaterialPageRoute(
-                    builder: (_) => PdfViewerScreen(url: content.fileUrl!)));
+                context.push('/pdf', extra: content.fileUrl);
               }
               break;
             case 'audio':
-              Navigator.of(ctx).pushReplacement(MaterialPageRoute(
-                  builder: (_) => AudioPlayerScreen(categoryId: content.id)));
+              context.push('/audio', extra: content.id);
               break;
             case 'video':
               if (content.fileUrl != null) {
-                Navigator.of(ctx).pushReplacement(MaterialPageRoute(
-                    builder: (_) => VideoPlayerScreen(url: content.fileUrl!)));
+                context.push('/video', extra: content.fileUrl);
               }
               break;
           }

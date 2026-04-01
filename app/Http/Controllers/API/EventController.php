@@ -18,7 +18,8 @@ class EventController extends Controller
 
         $filter = $request->get('filter', 'all');
         if ($filter === 'upcoming') {
-            $q->where(fn($b) => $b->where('status', 'upcoming')->orWhere('event_date', '>=', now()))
+            $q->where('status', 'upcoming')
+              ->where('event_date', '>=', now())
               ->orderBy('event_date');
         } elseif ($filter === 'past') {
             $q->where(fn($b) => $b->where('status', 'past')->orWhere('event_date', '<', now()))

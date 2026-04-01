@@ -23,13 +23,15 @@ class CacheService {
     final raw = _box.get(key);
     if (raw == null) return null;
     try {
-      final entry = jsonDecode(raw as String) as Map;
-      final expiresAt = entry['expires_at'] as int;
+      final decoded = jsonDecode(raw as String);
+      if (decoded is! Map) return null;
+      final expiresAt = decoded['expires_at'];
+      if (expiresAt is! int) return null;
       if (DateTime.now().millisecondsSinceEpoch > expiresAt) {
         _box.delete(key); // evict expired entry
         return null;
       }
-      return entry['data'];
+      return decoded['data'];
     } catch (_) {
       return null;
     }
