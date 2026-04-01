@@ -11,8 +11,6 @@ class ApiEndpoints {
   static const String profile    = '/profile';
   static const String myProfile  = '/my-profile';
   static const String logout     = '/logout';
-  static const String events     = '/events';
-  static const String search     = '/search';
 
   // Profile setup
   static const String saveProfile    = '/save-profile';
@@ -20,11 +18,20 @@ class ApiEndpoints {
   static const String saveAbout      = '/save-about';
   static const String uploadImages   = '/upload-images';
 
-  // Members social
+  // Members
   static const String members           = '/members';
   static const String memberCategories  = '/member-categories';
 
   // FCM
   static const String fcmToken = '/user/fcm-token';
+
+  // Events
+  static const String events = '/events';
+
+  // Donation payment (Razorpay)
+  static const String donationPay = '/donation/pay';
+
+  // Unified search
+  static const String search = '/search';
 }
 

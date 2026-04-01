@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/api/api_client.dart';
 import '../../core/api/api_endpoints.dart';
@@ -33,7 +34,17 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   Future<void> _play(ContentModel item, int index) async {
     ref.read(currentIndexProvider.notifier).state = index;
     if (item.fileUrl == null) return;
-    await _player.setUrl(item.fileUrl!);
+    final audioSource = AudioSource.uri(
+      Uri.parse(item.fileUrl!),
+      tag: MediaItem(
+        id: item.id.toString(),
+        title: item.title,
+        artist: item.author ?? 'Arya Samaj',
+        artUri: item.imageUrl != null ? Uri.parse(item.imageUrl!) : null,
+        album: 'Arya Samaj',
+      ),
+    );
+    await _player.setAudioSource(audioSource);
     await _player.play();
     ref.read(isPlayingProvider.notifier).state = true;
   }

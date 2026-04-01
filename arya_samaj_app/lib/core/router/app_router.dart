@@ -1,6 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'navigator_key.dart';
+import '../../core/api/api_client.dart';
+import '../../core/api/api_endpoints.dart';
+import '../../models/content_model.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/otp_screen.dart';
 import '../../screens/home/splash_screen.dart';
@@ -23,6 +28,7 @@ import '../../screens/members/member_detail_screen.dart';
 final routerProvider = Provider((ref) {
   const storage = FlutterSecureStorage();
   return GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) async {
       final token = await storage.read(key: 'auth_token');
@@ -64,6 +70,58 @@ final routerProvider = Provider((ref) {
       GoRoute(path: '/search',   builder: (c, s) => const SearchScreen()),
       GoRoute(path: '/members',  builder: (c, s) => const MembersScreen()),
       GoRoute(path: '/members/:id', builder: (c, s) => MemberDetailScreen(memberId: int.parse(s.pathParameters['id']!))),
+      // Deep-link route for notification: /contents/:id
+      GoRoute(path: '/contents/:id', builder: (c, s) {
+        final id = int.parse(s.pathParameters['id']!);
+        return _ContentDeepLinkScreen(contentId: id);
+      }),
     ],
   );
 });
+
+/// Fetches content by ID and redirects to the appropriate viewer.
+class _ContentDeepLinkScreen extends ConsumerWidget {
+  final int contentId;
+  const _ContentDeepLinkScreen({required this.contentId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final api = ref.read(apiClientProvider);
+    return FutureBuilder(
+      future: api.get('${ApiEndpoints.contents}/$contentId'),
+      builder: (ctx, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (snap.hasError || snap.data == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('सामग्री')),
+            body: const Center(child: Text('लोड नहीं हो सका')),
+          );
+        }
+        final content = ContentModel.fromJson(snap.data!.data['data'] as Map);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          switch (content.type) {
+            case 'pdf':
+              if (content.fileUrl != null) {
+                Navigator.of(ctx).pushReplacement(MaterialPageRoute(
+                    builder: (_) => PdfViewerScreen(url: content.fileUrl!)));
+              }
+              break;
+            case 'audio':
+              Navigator.of(ctx).pushReplacement(MaterialPageRoute(
+                  builder: (_) => AudioPlayerScreen(categoryId: content.id)));
+              break;
+            case 'video':
+              if (content.fileUrl != null) {
+                Navigator.of(ctx).pushReplacement(MaterialPageRoute(
+                    builder: (_) => VideoPlayerScreen(url: content.fileUrl!)));
+              }
+              break;
+          }
+        });
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}

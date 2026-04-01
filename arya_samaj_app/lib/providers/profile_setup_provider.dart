@@ -124,6 +124,43 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
   final ApiClient _api;
   ProfileSetupNotifier(this._api) : super(const ProfileSetupState());
 
+  /// Pre-loads existing profile data from /api/my-profile for edit mode.
+  Future<void> loadExistingProfile() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final res = await _api.get(ApiEndpoints.myProfile);
+      final d = res.data['data'] as Map;
+      final catIds = (d['categories'] as List? ?? [])
+          .map<int>((c) => (c['id'] as int))
+          .toList();
+      final imgs = (d['images'] as List? ?? [])
+          .map((i) => UserImageModel.fromJson(i as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(
+        isLoading: false,
+        name: d['name'] as String? ?? '',
+        username: d['username'] as String? ?? '',
+        gender: d['gender'] as String? ?? 'male',
+        dob: d['dob'] as String? ?? '',
+        profileImageUrl: d['profile_image'] as String?,
+        country: d['country'] as String? ?? 'India',
+        state: d['state'] as String? ?? '',
+        district: d['district'] as String? ?? '',
+        tehsil: d['tehsil'] as String? ?? '',
+        village: d['village'] as String? ?? '',
+        postOffice: d['post_office'] as String? ?? '',
+        pincode: d['pincode'] as String? ?? '',
+        selectedCategoryIds: catIds,
+        orgType: d['org_type'] as String? ?? '',
+        orgName: d['org_name'] as String? ?? '',
+        about: d['about'] as String? ?? '',
+        uploadedImages: imgs,
+      );
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
   void update(ProfileSetupState Function(ProfileSetupState) updater) {
     state = updater(state);
   }

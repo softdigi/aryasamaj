@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:go_router/go_router.dart';
+import '../router/navigator_key.dart';
 
 /// Top-level handler required by FCM for background messages.
 @pragma('vm:entry-point')
@@ -54,9 +56,11 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen(_showLocalNotification);
 
     // ── Handle tap on notification that opened the app ───────────────
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      // Navigation is handled via the router; payload can be routed here.
-    });
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNavigationFromMessage);
+
+    // ── Handle notification that launched the app from terminated state ──
+    final initial = await _fcm.getInitialMessage();
+    if (initial != null) _handleNavigationFromMessage(initial);
 
     // ── iOS foreground presentation ──────────────────────────────────
     if (Platform.isIOS) {
@@ -88,4 +92,32 @@ class NotificationService {
   }
 
   static Future<String?> getToken() => _fcm.getToken();
+
+  /// Navigate based on notification payload.
+  /// Expected data keys: type (content|event|member), id
+  static void _handleNavigationFromMessage(RemoteMessage message) {
+    final data = message.data;
+    final type = data['type'] as String?;
+    final id = data['id'] as String?;
+
+    String? route;
+    switch (type) {
+      case 'content':
+        if (id != null) route = '/contents/$id';
+        break;
+      case 'event':
+        route = '/events';
+        break;
+      case 'member':
+        if (id != null) route = '/members/$id';
+        break;
+    }
+
+    if (route != null) {
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        GoRouter.of(context).go(route);
+      }
+    }
+  }
 }

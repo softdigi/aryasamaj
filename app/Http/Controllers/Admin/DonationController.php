@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Donation;
+use App\Models\DonationPayment;
 use Illuminate\Http\Request;
 
 class DonationController extends Controller
 {
     public function index()
     {
-        return view('admin.donations.index', ['donations' => Donation::all()]);
+        return view('admin.donations.index', [
+            'donations' => Donation::all(),
+            'payments'  => DonationPayment::with('user')->orderByDesc('created_at')->paginate(20),
+        ]);
     }
 
     public function create()

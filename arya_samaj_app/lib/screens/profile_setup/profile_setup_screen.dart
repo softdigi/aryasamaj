@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/profile_setup_provider.dart';
 import 'step1_basic_screen.dart';
 import 'step2_address_screen.dart';
@@ -9,13 +10,30 @@ import 'step3_categories_screen.dart';
 import 'step4_about_screen.dart';
 import 'step5_images_screen.dart';
 
-class ProfileSetupScreen extends ConsumerWidget {
+class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
+
+  @override
+  ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+}
+
+class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Pre-load existing profile data for editing users
+    final auth = ref.read(authProvider);
+    if (auth.profileComplete) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(profileSetupProvider.notifier).loadExistingProfile();
+      });
+    }
+  }
 
   static const _titles = ['मूल जानकारी', 'पता', 'श्रेणी', 'परिचय', 'फोटो'];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final state = ref.watch(profileSetupProvider);
     final step = state.currentStep.clamp(1, 5);
 
@@ -39,29 +57,25 @@ class ProfileSetupScreen extends ConsumerWidget {
               )
             : null,
       ),
-      body: Column(
-        children: [
-          _StepIndicator(currentStep: step),
-          Expanded(child: _bodyFor(step)),
-        ],
-      ),
+      body: state.isLoading && step == 1
+          ? const Center(child: CircularProgressIndicator(color: AppColors.saffron))
+          : Column(
+              children: [
+                _StepIndicator(currentStep: step),
+                Expanded(child: _bodyFor(step)),
+              ],
+            ),
     );
   }
 
   Widget _bodyFor(int step) {
     switch (step) {
-      case 1:
-        return const Step1BasicScreen();
-      case 2:
-        return const Step2AddressScreen();
-      case 3:
-        return const Step3CategoriesScreen();
-      case 4:
-        return const Step4AboutScreen();
-      case 5:
-        return const Step5ImagesScreen();
-      default:
-        return const SizedBox.shrink();
+      case 1: return const Step1BasicScreen();
+      case 2: return const Step2AddressScreen();
+      case 3: return const Step3CategoriesScreen();
+      case 4: return const Step4AboutScreen();
+      case 5: return const Step5ImagesScreen();
+      default: return const SizedBox.shrink();
     }
   }
 }

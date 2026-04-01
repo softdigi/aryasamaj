@@ -61,4 +61,48 @@
         </table>
     </div>
 </div>
+
+{{-- Razorpay Payments --}}
+<h5 class="font-weight-bold mt-4 mb-2" style="color:#FF6B00;">
+    <i class="fas fa-credit-card mr-1"></i> Online Donations (Razorpay)
+</h5>
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="thead-light">
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>Payment ID</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($payments as $pay)
+                <tr>
+                    <td>{{ $pay->id }}</td>
+                    <td>{{ $pay->user?->name ?? '—' }}<br><small class="text-muted">{{ $pay->user?->mobile }}</small></td>
+                    <td><code>{{ $pay->razorpay_payment_id }}</code></td>
+                    <td><strong>₹{{ number_format($pay->amount, 2) }}</strong></td>
+                    <td>
+                        @if($pay->status === 'success')
+                            <span class="badge badge-success">Success</span>
+                        @else
+                            <span class="badge badge-danger">{{ ucfirst($pay->status) }}</span>
+                        @endif
+                    </td>
+                    <td>{{ $pay->created_at->format('d M Y, h:i A') }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center text-muted py-3">No payments yet.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    @if($payments->hasPages())
+    <div class="card-footer">{{ $payments->links() }}</div>
+    @endif
+</div>
 @endsection

@@ -12,6 +12,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeAsync = ref.watch(homeProvider);
+    final isOffline = ref.watch(homeOfflineProvider);
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
@@ -27,7 +28,20 @@ class HomeScreen extends ConsumerWidget {
           IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
         ],
       ),
-      body: homeAsync.when(
+      body: Column(children: [
+        if (isOffline)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            color: AppColors.warning,
+            child: const Row(children: [
+              Icon(Icons.wifi_off, color: Colors.white, size: 16),
+              SizedBox(width: 8),
+              Text('ऑफलाइन मोड — कैश डेटा दिखाया जा रहा है',
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        Expanded(child: homeAsync.when(
         loading: () => const _HomeShimmer(),
         error: (e, _) => Center(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -54,7 +68,8 @@ class HomeScreen extends ConsumerWidget {
             ]),
           ),
         ),
-      ),
+      )),
+      ]),
     );
   }
 }
