@@ -14,6 +14,20 @@ if (localPropertiesFile.exists()) {
     }
 }
 
+// Load keystore properties from a separate file outside version control.
+// Create android/key.properties with the following entries:
+//   storePassword=<your_store_password>
+//   keyPassword=<your_key_password>
+//   keyAlias=<your_key_alias>
+//   storeFile=<absolute_path_to_keystore.jks>
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) flutterVersionCode = '1'
 
@@ -39,6 +53,20 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    signingConfigs {
+        debug {
+            // Uses the default debug keystore automatically
+        }
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias     keystoreProperties['keyAlias']
+                keyPassword  keystoreProperties['keyPassword']
+                storeFile    file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.aryasamaj.app"
         minSdk 21
@@ -50,7 +78,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.debug  // replace with release keystore before publishing
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -58,6 +86,7 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
+            signingConfig signingConfigs.debug
         }
     }
 }
