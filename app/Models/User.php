@@ -86,5 +86,33 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserImage::class)->orderBy('sort_order');
     }
+
+    /**
+     * Eager-load the single first image per user using a subquery join.
+     * Produces 2 queries total (one for users, one for first images) instead of N+1.
+     */
+    public function scopeWithFirstImage($query)
+    {
+        $firstImageSub = \DB::table('user_images')
+            ->select('user_id', \DB::raw('MIN(id) as first_image_id'))
+            ->groupBy('user_id');
+
+        $query->leftJoinSub($firstImageSub, 'fi', 'fi.user_id', '=', 'users.id')
+              ->leftJoin('user_images as ui_first', 'ui_first.id', '=', 'fi.first_image_id')
+              ->addSelect('users.*', 'ui_first.id as _fi_id');
+    }
+
+    /**
+     * Returns the first-image URL resolved via the subquery join columns,
+     * or falls back to the loaded images collection.
+     */
+    public function getFirstImageUrlAttribute(): ?string
+    {
+        if (isset($this->attributes['_fi_id']) && $this->attributes['_fi_id']) {
+            return url('/api/files/user-image/' . $this->attributes['_fi_id']);
+        }
+        $first = $this->images->first();
+        return $first ? $first->image_url : null;
+    }
 }
 

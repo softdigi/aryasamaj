@@ -13,9 +13,11 @@ final audioListProvider = FutureProvider.family<List<ContentModel>, int>((ref, c
   return (res.data['data'] as List).map((e) => ContentModel.fromJson(e)).toList();
 });
 
-final _player = AudioPlayer();
-final currentIndexProvider = StateProvider<int>((ref) => -1);
-final isPlayingProvider = StateProvider<bool>((ref) => false);
+// State is kept inside _AudioPlayerScreenState, not at top level.
+// currentIndex and isPlaying are local StateNotifiers to avoid leaking
+// global state across navigation events.
+final _currentIndexProvider = StateProvider<int>((ref) => -1);
+final _isPlayingProvider = StateProvider<bool>((ref) => false);
 
 class AudioPlayerScreen extends ConsumerStatefulWidget {
   final int categoryId;
@@ -25,14 +27,24 @@ class AudioPlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
+  // AudioPlayer is owned by this State and disposed in dispose().
+  late final AudioPlayer _player;
+
+  @override
+  void initState() {
+    super.initState();
+    _player = AudioPlayer();
+  }
+
   @override
   void dispose() {
     _player.stop();
+    _player.dispose();
     super.dispose();
   }
 
   Future<void> _play(ContentModel item, int index) async {
-    ref.read(currentIndexProvider.notifier).state = index;
+    ref.read(_currentIndexProvider.notifier).state = index;
     if (item.fileUrl == null) return;
     final audioSource = AudioSource.uri(
       Uri.parse(item.fileUrl!),
@@ -46,7 +58,7 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
     );
     await _player.setAudioSource(audioSource);
     await _player.play();
-    ref.read(isPlayingProvider.notifier).state = true;
+    ref.read(_isPlayingProvider.notifier).state = true;
   }
 
   String _fmt(Duration d) => '${d.inMinutes.toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
@@ -54,8 +66,8 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final listAsync = ref.watch(audioListProvider(widget.categoryId));
-    final current = ref.watch(currentIndexProvider);
-    final playing = ref.watch(isPlayingProvider);
+    final current = ref.watch(_currentIndexProvider);
+    final playing = ref.watch(_isPlayingProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A1628),
@@ -99,10 +111,10 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen> {
                         onPressed: () async {
                           if (playing) {
                             await _player.pause();
-                            ref.read(isPlayingProvider.notifier).state = false;
+                            ref.read(_isPlayingProvider.notifier).state = false;
                           } else {
                             await _player.play();
-                            ref.read(isPlayingProvider.notifier).state = true;
+                            ref.read(_isPlayingProvider.notifier).state = true;
                           }
                         },
                       ),

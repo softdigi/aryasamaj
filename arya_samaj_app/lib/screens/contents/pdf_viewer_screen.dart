@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:dio/dio.dart';
@@ -20,15 +21,29 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   @override
   void initState() {
     super.initState();
-    _download();
+    _loadPdf();
   }
 
-  Future<void> _download() async {
+  Future<void> _loadPdf() async {
     final dir = await getTemporaryDirectory();
-    final name = widget.url.split('/').last;
+    final name = Uri.parse(widget.url).pathSegments.last;
     final path = '${dir.path}/$name';
-    await Dio().download(widget.url, path);
-    setState(() { _localPath = path; _loading = false; });
+    final file = File(path);
+
+    final bool needsDownload = !file.existsSync() ||
+        (file.existsSync() &&
+            DateTime.now().difference(file.lastModifiedSync()).inHours >= 24);
+
+    if (needsDownload) {
+      await Dio().download(widget.url, path);
+    }
+
+    if (mounted) {
+      setState(() {
+        _localPath = path;
+        _loading = false;
+      });
+    }
   }
 
   @override

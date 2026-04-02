@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\MemberCategory;
+use App\Models\ProfileViewLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -25,7 +26,8 @@ class MembersController extends Controller
         $query = User::query()
             ->where('status', 'active')
             ->where('profile_complete', true)
-            ->with(['memberCategories:id,name,group', 'images' => fn($q) => $q->orderBy('sort_order')->limit(1)]);
+            ->with(['memberCategories:id,name,group'])
+            ->withFirstImage();
 
         if ($request->filled('category_id')) {
             $query->whereHas('memberCategories', fn($q) => $q->where('member_categories.id', $request->category_id));
@@ -68,8 +70,12 @@ class MembersController extends Controller
             ->with(['memberCategories:id,name,group', 'images'])
             ->firstOrFail();
 
-        // Increment profile views
-        $user->increment('profile_views');
+        // Log the view asynchronously instead of a per-request write contention increment()
+        ProfileViewLog::create([
+            'user_id'   => $user->id,
+            'viewer_ip' => request()->ip(),
+            'viewed_at' => now(),
+        ]);
 
         return $this->success($this->formatDetail($user));
     }
@@ -88,7 +94,6 @@ class MembersController extends Controller
 
     private function formatCard(User $u): array
     {
-        $firstImage = $u->images->first();
         return [
             'id'            => $u->id,
             'name'          => $u->name,
@@ -99,7 +104,7 @@ class MembersController extends Controller
             'is_verified'   => $u->is_verified,
             'categories'    => $u->memberCategories->map(fn($c) => ['id' => $c->id, 'name' => $c->name]),
             'org_type'      => $u->org_type,
-            'first_image'   => $firstImage ? $firstImage->image_url : null,
+            'first_image'   => $u->first_image_url,
         ];
     }
 

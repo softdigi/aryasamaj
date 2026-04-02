@@ -6,12 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\MemberCategory;
 use App\Models\User;
 use App\Models\UserImage;
+use App\Services\ImageResizeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
+    private ImageResizeService $imageService;
+
+    public function __construct(ImageResizeService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     // POST /api/save-profile  (Step 1 + Step 2)
     public function saveProfile(Request $request)
     {
@@ -40,11 +47,11 @@ class ProfileController extends Controller
 
         if ($request->hasFile('profile_image')) {
             $file = $request->file('profile_image');
-            $filename = 'profile_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $baseName = 'profile_' . $user->id . '_' . time();
             if ($user->profile_image) {
                 Storage::disk('private_uploads')->delete('profiles/' . $user->profile_image);
             }
-            Storage::disk('private_uploads')->putFileAs('profiles', $file, $filename);
+            $filename = $this->imageService->resizeProfile($file, 'private_uploads', 'profiles', $baseName);
             $data['profile_image'] = $filename;
         }
 
@@ -100,11 +107,11 @@ class ProfileController extends Controller
         $saved = [];
 
         foreach ($request->file('images') as $idx => $file) {
-            $filename = 'user_' . $user->id . '_' . time() . '_' . $idx . '.' . $file->getClientOriginalExtension();
-            Storage::disk('private_uploads')->putFileAs('user-images', $file, $filename);
+            $baseName = 'user_' . $user->id . '_' . time() . '_' . $idx;
+            $result = $this->imageService->resizeGallery($file, 'private_uploads', 'user-images', $baseName);
             $img = UserImage::create([
                 'user_id'    => $user->id,
-                'image_path' => $filename,
+                'image_path' => $result['main'],
                 'sort_order' => $user->images()->count() + $idx,
             ]);
             $saved[] = ['id' => $img->id, 'url' => url('/api/files/user-image/' . $img->id)];
