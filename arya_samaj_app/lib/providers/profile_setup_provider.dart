@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
 import '../models/member_category_model.dart';
 import '../models/member_user_model.dart';
+
+const _kProfileSetupStep = 'profile_setup_step';
 
 class ProfileSetupState {
   // Step tracking
@@ -122,7 +125,30 @@ final profileSetupProvider = StateNotifierProvider<ProfileSetupNotifier, Profile
 
 class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
   final ApiClient _api;
-  ProfileSetupNotifier(this._api) : super(const ProfileSetupState());
+  ProfileSetupNotifier(this._api) : super(const ProfileSetupState()) {
+    _restoreStep();
+  }
+
+  /// Restores the last saved step so users can resume where they left off.
+  Future<void> _restoreStep() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt(_kProfileSetupStep) ?? 1;
+    if (saved > 1) {
+      state = state.copyWith(currentStep: saved.clamp(1, 5));
+    }
+  }
+
+  /// Persists the current step to SharedPreferences.
+  Future<void> _saveStep(int step) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kProfileSetupStep, step);
+  }
+
+  /// Clears the saved step (called when setup is complete or skipped fully).
+  Future<void> clearSavedStep() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kProfileSetupStep);
+  }
 
   /// Pre-loads existing profile data from /api/my-profile for edit mode.
   Future<void> loadExistingProfile() async {
@@ -190,6 +216,7 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
       final res = await _api.postForm(ApiEndpoints.saveProfile, formData: formData);
       final url = res.data['data']['profile_image'] as String?;
       state = state.copyWith(isLoading: false, profileImageUrl: url, currentStep: 3);
+      _saveStep(3);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'प्रोफाइल सेव नहीं हुई');
@@ -207,6 +234,7 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
         'org_name': state.orgName,
       });
       state = state.copyWith(isLoading: false, currentStep: 4);
+      _saveStep(4);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'श्रेणी सेव नहीं हुई');
@@ -220,6 +248,7 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
     try {
       await _api.post(ApiEndpoints.saveAbout, data: {'about': state.about});
       state = state.copyWith(isLoading: false, currentStep: 5);
+      _saveStep(5);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'परिचय सेव नहीं हुआ');
@@ -241,6 +270,7 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
           .map((i) => UserImageModel.fromJson(i as Map<String, dynamic>))
           .toList();
       state = state.copyWith(isLoading: false, uploadedImages: imgs, done: true);
+      clearSavedStep(); // setup complete — no need to resume
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'फोटो अपलोड नहीं हुई');
@@ -260,5 +290,8 @@ class ProfileSetupNotifier extends StateNotifier<ProfileSetupState> {
     }
   }
 
-  void goToStep(int step) => state = state.copyWith(currentStep: step);
+  void goToStep(int step) {
+    state = state.copyWith(currentStep: step);
+    _saveStep(step);
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -83,15 +84,24 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _ctrl = TextEditingController();
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _ctrl.dispose();
     super.dispose();
   }
 
   void _onChanged(String v) {
-    ref.read(_searchQueryProvider.notifier).state = v;
+    _debounce?.cancel();
+    if (v.trim().length < 2) {
+      ref.read(_searchQueryProvider.notifier).state = '';
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      ref.read(_searchQueryProvider.notifier).state = v;
+    });
   }
 
   @override

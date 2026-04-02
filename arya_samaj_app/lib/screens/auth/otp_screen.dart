@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'dart:async';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -72,7 +73,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           ElevatedButton(
             onPressed: (_otp.length == 6 && !auth.isLoading) ? () async {
               final ok = await ref.read(authProvider.notifier).verifyOtp(widget.mobile, _otp);
-              if (ok && context.mounted) context.go('/home');
+              if (ok && context.mounted) {
+                final profileComplete = ref.read(authProvider).profileComplete;
+                context.go(profileComplete ? '/home' : '/profile-setup');
+              }
             } : null,
             child: auth.isLoading
               ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
@@ -80,13 +84,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           ),
           const SizedBox(height: 20),
           _seconds > 0
-            ? Text('OTP resend: $_seconds सेकंड', style: const TextStyle(color: AppColors.textSecondary))
+            ? Text('${AppStrings.otpResendIn} $_seconds ${AppStrings.seconds}', style: const TextStyle(color: AppColors.textSecondary))
             : TextButton(
                 onPressed: () {
                   ref.read(authProvider.notifier).sendOtp(widget.mobile);
                   _startTimer();
                 },
-                child: const Text('OTP फिर भेजें', style: TextStyle(color: AppColors.saffron, fontWeight: FontWeight.w700)),
+                child: const Text(AppStrings.otpResend, style: TextStyle(color: AppColors.saffron, fontWeight: FontWeight.w700)),
               ),
         ]),
       ),

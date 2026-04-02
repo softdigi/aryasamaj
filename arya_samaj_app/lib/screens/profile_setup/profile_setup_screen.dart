@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_setup_provider.dart';
 import 'step1_basic_screen.dart';
@@ -48,7 +49,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.saffron,
         foregroundColor: Colors.white,
-        title: Text('प्रोफाइल सेटअप – ${_titles[step - 1]}'),
+        title: Text('${AppStrings.profileSetup} – ${_titles[step - 1]}'),
         automaticallyImplyLeading: step > 1,
         leading: step > 1
             ? IconButton(
@@ -56,6 +57,15 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 onPressed: () => ref.read(profileSetupProvider.notifier).goToStep(step - 1),
               )
             : null,
+        actions: [
+          TextButton(
+            onPressed: () => context.go('/home'),
+            child: const Text(
+              AppStrings.continueSetupLater,
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
+        ],
       ),
       body: state.isLoading && step == 1
           ? const Center(child: CircularProgressIndicator(color: AppColors.saffron))

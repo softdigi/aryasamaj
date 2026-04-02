@@ -19,6 +19,13 @@ class _Step2AddressScreenState extends ConsumerState<Step2AddressScreen> {
   late final TextEditingController _postOfficeCtrl;
   late final TextEditingController _pincodeCtrl;
 
+  final _stateFocus      = FocusNode();
+  final _districtFocus   = FocusNode();
+  final _tehsilFocus     = FocusNode();
+  final _villageFocus    = FocusNode();
+  final _postOfficeFocus = FocusNode();
+  final _pincodeFocus    = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +42,9 @@ class _Step2AddressScreenState extends ConsumerState<Step2AddressScreen> {
   void dispose() {
     for (final c in [_stateCtrl, _districtCtrl, _tehsilCtrl, _villageCtrl, _postOfficeCtrl, _pincodeCtrl]) {
       c.dispose();
+    }
+    for (final f in [_stateFocus, _districtFocus, _tehsilFocus, _villageFocus, _postOfficeFocus, _pincodeFocus]) {
+      f.dispose();
     }
     super.dispose();
   }
@@ -66,18 +76,31 @@ class _Step2AddressScreenState extends ConsumerState<Step2AddressScreen> {
         key: _formKey,
         child: Column(
           children: [
-            _field(_stateCtrl, 'राज्य *', Icons.map_outlined, required: true),
+            _field(_stateCtrl, 'राज्य *', Icons.map_outlined,
+                required: true, focusNode: _stateFocus,
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_districtFocus)),
             const SizedBox(height: 16),
-            _field(_districtCtrl, 'जिला *', Icons.location_city, required: true),
+            _field(_districtCtrl, 'जिला *', Icons.location_city,
+                required: true, focusNode: _districtFocus,
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_tehsilFocus)),
             const SizedBox(height: 16),
-            _field(_tehsilCtrl, 'तहसील', Icons.place_outlined),
+            _field(_tehsilCtrl, 'तहसील', Icons.place_outlined,
+                focusNode: _tehsilFocus,
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_villageFocus)),
             const SizedBox(height: 16),
-            _field(_villageCtrl, 'गाँव / मोहल्ला', Icons.home_outlined),
+            _field(_villageCtrl, 'गाँव / मोहल्ला', Icons.home_outlined,
+                focusNode: _villageFocus,
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_postOfficeFocus)),
             const SizedBox(height: 16),
-            _field(_postOfficeCtrl, 'पोस्ट ऑफिस', Icons.mail_outline),
+            _field(_postOfficeCtrl, 'पोस्ट ऑफिस', Icons.mail_outline,
+                focusNode: _postOfficeFocus,
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_pincodeFocus)),
             const SizedBox(height: 16),
             _field(_pincodeCtrl, 'पिन कोड', Icons.pin_outlined,
-                keyboard: TextInputType.number),
+                keyboard: TextInputType.number,
+                focusNode: _pincodeFocus,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) { FocusScope.of(context).unfocus(); _submit(); }),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -101,10 +124,15 @@ class _Step2AddressScreenState extends ConsumerState<Step2AddressScreen> {
   }
 
   Widget _field(TextEditingController ctrl, String label, IconData icon,
-      {bool required = false, TextInputType? keyboard}) =>
+      {bool required = false, TextInputType? keyboard,
+      FocusNode? focusNode, TextInputAction textInputAction = TextInputAction.next,
+      void Function(String)? onSubmitted}) =>
       TextFormField(
         controller: ctrl,
         keyboardType: keyboard,
+        focusNode: focusNode,
+        textInputAction: textInputAction,
+        onFieldSubmitted: onSubmitted,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: AppColors.saffron),

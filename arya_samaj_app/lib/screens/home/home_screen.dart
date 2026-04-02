@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/home_provider.dart';
 import '../../models/feature_model.dart';
 
@@ -15,6 +17,7 @@ class HomeScreen extends ConsumerWidget {
     final isOffline = ref.watch(homeOfflineProvider);
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
+      drawer: _AppDrawer(),
       appBar: AppBar(
         leading: Builder(
           builder: (ctx) => IconButton(
@@ -172,6 +175,92 @@ class _HomeShimmer extends StatelessWidget {
           ),
         ]),
       ),
+    );
+  }
+}
+
+
+// ── App Drawer ────────────────────────────────────────────────────────────────
+
+class _AppDrawer extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Drawer(
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(color: AppColors.saffron),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: const [
+                Icon(Icons.account_circle, color: Colors.white, size: 52),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(AppStrings.appName,
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                      SizedBox(height: 4),
+                      Text(AppStrings.tagline,
+                          style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _DrawerTile(icon: Icons.home_outlined,        label: AppStrings.home,      route: '/home'),
+                _DrawerTile(icon: Icons.library_books_outlined, label: AppStrings.library, route: '/library'),
+                _DrawerTile(icon: Icons.event_outlined,       label: AppStrings.events,    route: '/events'),
+                _DrawerTile(icon: Icons.people_outline,       label: AppStrings.members,   route: '/members'),
+                _DrawerTile(icon: Icons.volunteer_activism_outlined, label: AppStrings.donation, route: '/donation'),
+                _DrawerTile(icon: Icons.person_outline,       label: AppStrings.profile,   route: '/profile'),
+                _DrawerTile(icon: Icons.feedback_outlined,    label: AppStrings.feedback,  route: '/feedback'),
+                const Divider(),
+                _DrawerTile(icon: Icons.search,               label: AppStrings.search,    route: '/search'),
+              ],
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: AppColors.error),
+              title: const Text(AppStrings.logout,
+                  style: TextStyle(color: AppColors.error)),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await ref.read(authProvider.notifier).logout();
+                if (context.mounted) context.go('/login');
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DrawerTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String route;
+  const _DrawerTile({required this.icon, required this.label, required this.route});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.saffron),
+      title: Text(label),
+      onTap: () {
+        Navigator.of(context).pop();
+        context.go(route);
+      },
     );
   }
 }

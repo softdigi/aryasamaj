@@ -17,6 +17,8 @@ class _Step1BasicScreenState extends ConsumerState<Step1BasicScreen> {
   late TextEditingController _nameCtrl;
   late TextEditingController _usernameCtrl;
   late TextEditingController _dobCtrl;
+  final _nameFocus     = FocusNode();
+  final _usernameFocus = FocusNode();
 
   @override
   void initState() {
@@ -32,6 +34,8 @@ class _Step1BasicScreenState extends ConsumerState<Step1BasicScreen> {
     _nameCtrl.dispose();
     _usernameCtrl.dispose();
     _dobCtrl.dispose();
+    _nameFocus.dispose();
+    _usernameFocus.dispose();
     super.dispose();
   }
 
@@ -96,10 +100,18 @@ class _Step1BasicScreenState extends ConsumerState<Step1BasicScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            _field(_nameCtrl, 'पूरा नाम', Icons.person_outline, validator: (v) =>
+            _field(_nameCtrl, 'पूरा नाम', Icons.person_outline,
+                focusNode: _nameFocus,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_usernameFocus),
+                validator: (v) =>
                 v == null || v.trim().isEmpty ? 'नाम आवश्यक है' : null),
             const SizedBox(height: 16),
-            _field(_usernameCtrl, 'यूज़रनेम (अंग्रेज़ी)', Icons.alternate_email, validator: (v) {
+            _field(_usernameCtrl, 'यूज़रनेम (अंग्रेज़ी)', Icons.alternate_email,
+                focusNode: _usernameFocus,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                validator: (v) {
               if (v == null || v.trim().isEmpty) return 'यूज़रनेम आवश्यक है';
               if (!RegExp(r'^[a-zA-Z0-9_.-]+$').hasMatch(v.trim())) return 'केवल अक्षर, अंक, _, - allowed';
               return null;
@@ -143,9 +155,20 @@ class _Step1BasicScreenState extends ConsumerState<Step1BasicScreen> {
     );
   }
 
-  Widget _field(TextEditingController ctrl, String label, IconData icon, {String? Function(String?)? validator}) =>
+  Widget _field(
+    TextEditingController ctrl,
+    String label,
+    IconData icon, {
+    FocusNode? focusNode,
+    TextInputAction textInputAction = TextInputAction.next,
+    void Function(String)? onSubmitted,
+    String? Function(String?)? validator,
+  }) =>
       TextFormField(
         controller: ctrl,
+        focusNode: focusNode,
+        textInputAction: textInputAction,
+        onFieldSubmitted: onSubmitted,
         decoration: _dec(label, icon),
         validator: validator,
       );

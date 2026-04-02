@@ -149,19 +149,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         actions: [IconButton(icon: const Icon(Icons.search), onPressed: () => context.push('/search'))],
       ),
       body: Column(children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: AppColors.categoryBar,
-          child: Row(children: [
-            const Expanded(child: Text('पुस्तकों की पीडीएफ अपलोड करें', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(.2), borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.lock, color: Colors.white, size: 16),
-            ),
-          ]),
-        ),
         Expanded(
           child: state.isLoading
               ? const Center(child: CircularProgressIndicator(color: AppColors.saffron))
