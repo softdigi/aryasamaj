@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/api/api_client.dart';
 import '../core/api/api_endpoints.dart';
@@ -62,10 +63,18 @@ final membersProvider = StateNotifierProvider<MembersNotifier, MembersState>((re
 
 class MembersNotifier extends StateNotifier<MembersState> {
   final ApiClient _api;
+
+  /// Active Dio cancel token. Cancelled whenever a new request is triggered
+  /// so that a stale (slow) response cannot overwrite a newer result.
+  CancelToken? _cancelToken;
+
   MembersNotifier(this._api) : super(const MembersState());
 
   Future<void> load(MembersFilter filter, {bool reset = false}) async {
-    if (state.isLoading) return;
+    // Cancel any in-flight request before starting a new one
+    _cancelToken?.cancel('new request');
+    _cancelToken = CancelToken();
+
     final page = reset ? 1 : state.currentPage;
     state = state.copyWith(isLoading: true, error: null);
     try {
@@ -75,7 +84,7 @@ class MembersNotifier extends StateNotifier<MembersState> {
       if (filter.district != null && filter.district!.isNotEmpty) params['district'] = filter.district;
       if (filter.search != null && filter.search!.isNotEmpty) params['search'] = filter.search;
 
-      final res = await _api.get(ApiEndpoints.members, params: params);
+      final res = await _api.get(ApiEndpoints.members, params: params, cancelToken: _cancelToken);
       final list = (res.data['data'] as List)
           .map((e) => MemberUserModel.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -88,9 +97,21 @@ class MembersNotifier extends StateNotifier<MembersState> {
         hasMore: page < lastPage,
         currentPage: page + 1,
       );
+    } on DioException catch (e) {
+      if (CancelToken.isCancel(e)) {
+        // Request was cancelled — do not update state with an error
+        return;
+      }
+      state = state.copyWith(isLoading: false, error: 'सदस्य लोड नहीं हुए');
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'सदस्य लोड नहीं हुए');
     }
+  }
+
+  @override
+  void dispose() {
+    _cancelToken?.cancel('provider disposed');
+    super.dispose();
   }
 }
 

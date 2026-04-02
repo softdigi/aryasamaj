@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendOtpJob;
 use App\Models\OtpLog;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -23,8 +24,8 @@ class AuthController extends Controller
             ['otp' => hash('sha256', $otp), 'expires_at' => now()->addMinutes(5), 'is_used' => 0, 'created_at' => now()]
         );
 
-        // TODO: Integrate SMS gateway (Fast2SMS / MSG91)
-        // Send $otp to $request->mobile via SMS API
+        // Dispatch OTP SMS asynchronously via queue
+        SendOtpJob::dispatch($request->mobile, $otp);
 
         return $this->success([], 'OTP sent successfully');
     }

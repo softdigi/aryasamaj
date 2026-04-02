@@ -29,11 +29,11 @@ class ApiClient {
     ));
   }
 
-  Future get(String path, {Map? params}) =>
-      _dio.get(path, queryParameters: params);
+  Future get(String path, {Map? params, CancelToken? cancelToken}) =>
+      _dio.get(path, queryParameters: params, cancelToken: cancelToken);
 
-  Future post(String path, {dynamic data}) =>
-      _dio.post(path, data: data);
+  Future post(String path, {dynamic data, CancelToken? cancelToken}) =>
+      _dio.post(path, data: data, cancelToken: cancelToken);
 
   Future postForm(String path, {required FormData formData}) =>
       _dio.post(path, data: formData);

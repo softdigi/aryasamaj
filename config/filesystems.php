@@ -75,6 +75,22 @@ return [
             'report' => false,
         ],
 
+        // Cloudflare R2 — S3-compatible object storage.
+        // Set FILESYSTEM_DISK=r2 in production .env to activate.
+        // CDN_URL overrides the public asset URL (e.g. https://cdn.aryasamaj.site).
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID'),
+            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
+            'region' => 'auto',
+            'bucket' => env('CLOUDFLARE_R2_BUCKET'),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
+            'url' => env('CDN_URL', env('CLOUDFLARE_R2_ENDPOINT')),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*
