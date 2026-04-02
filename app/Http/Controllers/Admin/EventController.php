@@ -31,7 +31,7 @@ class EventController extends Controller
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $name = time() . '_' . $file->getClientOriginalName();
+            $name = 'event_' . time() . '_' . bin2hex(random_bytes(6)) . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('uploads/events'), $name);
             $data['image'] = $name;
         }
@@ -61,7 +61,7 @@ class EventController extends Controller
                 unlink(public_path('uploads/events/' . $event->image));
             }
             $file = $request->file('image');
-            $name = time() . '_' . $file->getClientOriginalName();
+            $name = 'event_' . time() . '_' . bin2hex(random_bytes(6)) . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('uploads/events'), $name);
             $data['image'] = $name;
         }

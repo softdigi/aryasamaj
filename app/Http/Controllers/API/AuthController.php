@@ -17,7 +17,7 @@ class AuthController extends Controller
         $v = Validator::make($request->all(), ['mobile' => 'required|digits:10']);
         if ($v->fails()) return $this->error($v->errors()->first());
 
-        $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         OtpLog::updateOrCreate(
             ['mobile' => $request->mobile],
@@ -52,8 +52,12 @@ class AuthController extends Controller
 
         $user = User::firstOrCreate(
             ['mobile' => $request->mobile],
-            ['name' => 'User ' . $request->mobile, 'status' => 'active']
+            ['name' => 'User ' . $request->mobile]
         );
+
+        if ($user->wasRecentlyCreated) {
+            $user->forceFill(['status' => 'active'])->save();
+        }
 
         if ($user->status === 'blocked') return $this->error('Account blocked. Contact admin.', 403);
 

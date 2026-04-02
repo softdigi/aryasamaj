@@ -27,8 +27,13 @@ class ContentController extends Controller
             'title'       => 'required|string|max:200',
             'type'        => 'required|in:pdf,audio,video,image,text',
             'category_id' => 'required|exists:categories,id',
-            'file'        => 'nullable|file|max:51200', // 50MB
-            'image'       => 'nullable|image|max:2048',
+            'file'        => [
+                'nullable',
+                'file',
+                'max:51200',
+                'mimetypes:application/pdf,audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,video/mp4,video/webm,video/ogg,image/jpeg,image/png,image/webp,image/gif',
+            ],
+            'image'       => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
         $data = $request->only(['title', 'type', 'category_id', 'description', 'author', 'edition_year', 'status']);
         if ($request->hasFile('file')) {
@@ -53,8 +58,13 @@ class ContentController extends Controller
         $request->validate([
             'title'       => 'required|string|max:200',
             'category_id' => 'required|exists:categories,id',
-            'file'        => 'nullable|file|max:51200',
-            'image'       => 'nullable|image|max:2048',
+            'file'        => [
+                'nullable',
+                'file',
+                'max:51200',
+                'mimetypes:application/pdf,audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,video/mp4,video/webm,video/ogg,image/jpeg,image/png,image/webp,image/gif',
+            ],
+            'image'       => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
         $data = $request->only(['title', 'category_id', 'description', 'author', 'edition_year', 'status']);
         if ($request->hasFile('file')) {

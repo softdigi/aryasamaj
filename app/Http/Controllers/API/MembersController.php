@@ -114,7 +114,6 @@ class MembersController extends Controller
             'id'            => $u->id,
             'name'          => $u->name,
             'username'      => $u->username,
-            'mobile'        => $u->mobile,
             'gender'        => $u->gender,
             'dob'           => $u->dob?->format('Y-m-d'),
             'country'       => $u->country,

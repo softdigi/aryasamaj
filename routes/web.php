@@ -8,7 +8,7 @@ Route::get('/', fn() => redirect()->route('admin.login'));
 // Admin auth (no middleware)
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [Admin\AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [Admin\AuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [Admin\AuthController::class, 'login'])->name('login.post')->middleware('throttle:10,1');
     Route::post('/logout', [Admin\AuthController::class, 'logout'])->name('logout');
 
     // Protected admin routes

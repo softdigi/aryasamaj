@@ -11,9 +11,12 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $q = User::where('is_admin', 0);
-        if ($request->search) {
-            $q->where('mobile', 'like', '%' . $request->search . '%')
-              ->orWhere('name', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $q->where(function ($query) use ($search) {
+                $query->where('mobile', 'like', '%' . $search . '%')
+                      ->orWhere('name', 'like', '%' . $search . '%');
+            });
         }
         $users = $q->latest()->paginate(25);
         return view('admin.users.index', compact('users'));
@@ -21,7 +24,8 @@ class UserController extends Controller
 
     public function toggle(User $user)
     {
-        $user->update(['status' => $user->status === 'active' ? 'blocked' : 'active']);
+        $newStatus = $user->status === 'active' ? 'blocked' : 'active';
+        $user->forceFill(['status' => $newStatus])->save();
         return back()->with('success', 'User status updated.');
     }
 }

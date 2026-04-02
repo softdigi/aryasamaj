@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::post('/send-otp', [AuthController::class, 'sendOtp'])->middleware('throttle:5,1');
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,10');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:5,1');
 
 // Cacheable public GET endpoints (Cache-Control: public, max-age=300)
 Route::middleware(PublicApiCache::class)->group(function () {

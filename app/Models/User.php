@@ -14,18 +14,11 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'mobile',
         'email',
         'password',
-        'is_admin',
-        'status',
         'profile_image',
         'username',
         'gender',
@@ -41,10 +34,14 @@ class User extends Authenticatable
         'org_type',
         'org_name',
         'profile_complete',
-        'is_verified',
-        'profile_views',
         'fcm_token',
     ];
+
+    /**
+     * Fields that require direct DB assignment and must NOT be mass-assigned
+     * from untrusted input: is_admin, status, is_verified, profile_views.
+     * Use $user->forceFill([...]) or individual property assignment for these.
+     */
 
     /**
      * The attributes that should be hidden for serialization.
