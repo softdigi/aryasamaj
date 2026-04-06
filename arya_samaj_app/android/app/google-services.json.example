@@ -1,0 +1,30 @@
+{
+  "_comment": "Copy this file to google-services.json and replace all placeholder values with your actual Firebase project credentials.",
+  "_comment2": "Download the real google-services.json from Firebase Console > Project Settings > Your Apps > Android App.",
+  "project_info": {
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:YOUR_PROJECT_NUMBER:android:XXXXXXXXXXXX",
+        "android_client_info": {
+          "package_name": "com.aryasamaj.app"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "YOUR_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
