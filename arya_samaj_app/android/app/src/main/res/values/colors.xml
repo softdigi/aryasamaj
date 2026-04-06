@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Saffron for notification LED / icon tinting -->
+    <color name="notification_color">#FF6F00</color>
+    <color name="colorPrimary">#FF6F00</color>
+    <color name="colorPrimaryDark">#E65100</color>
+    <color name="colorAccent">#1B5E20</color>
+</resources>

@@ -1,0 +1,80 @@
+# /etc/logrotate.d/aryasamaj
+#
+# Log rotation for the Arya Samaj application.
+# Covers Laravel application logs, Nginx access/error logs,
+# PHP-FPM logs, and Supervisor worker logs.
+# Runs daily; 30 days of history retained and compressed.
+
+# ── Laravel application logs ──────────────────────────────────────────────────
+/var/www/aryasamaj/storage/logs/*.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    sharedscripts
+    create 0664 www-data www-data
+    postrotate
+        # Signal PHP-FPM to reopen its log file handles
+        [ -f /run/php/php8.2-fpm.pid ] && kill -USR1 $(cat /run/php/php8.2-fpm.pid) || true
+    endscript
+}
+
+# ── Nginx access log ──────────────────────────────────────────────────────────
+/var/log/nginx/aryasamaj-access.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    sharedscripts
+    postrotate
+        [ -f /run/nginx.pid ] && kill -USR1 $(cat /run/nginx.pid) || true
+    endscript
+}
+
+# ── Nginx error log ───────────────────────────────────────────────────────────
+/var/log/nginx/aryasamaj-error.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    sharedscripts
+    postrotate
+        [ -f /run/nginx.pid ] && kill -USR1 $(cat /run/nginx.pid) || true
+    endscript
+}
+
+# ── PHP-FPM logs ──────────────────────────────────────────────────────────────
+/var/log/php8.2-fpm-aryasamaj-*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        [ -f /run/php/php8.2-fpm.pid ] && kill -USR1 $(cat /run/php/php8.2-fpm.pid) || true
+    endscript
+}
+
+# ── Supervisor worker / Horizon logs ─────────────────────────────────────────
+/var/log/supervisor/aryasamaj-*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 root adm
+    postrotate
+        supervisorctl signal USR2 aryasamaj-worker:* >/dev/null 2>&1 || true
+        supervisorctl signal USR2 aryasamaj-horizon:* >/dev/null 2>&1 || true
+    endscript
+}
